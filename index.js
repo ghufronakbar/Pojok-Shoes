@@ -48,6 +48,6 @@ app.use((error, req, res, next) => {
 });
 
 app.listen(PORT, () => {
-  print({ DB_HOST, DB_NAME, DB_USER, DB_PASS });
+  console.log({ DB_HOST, DB_NAME, DB_USER, DB_PASS });
   console.log(`Server is running on port ${PORT}`);
 });
