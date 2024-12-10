@@ -20,8 +20,7 @@ exports.calcShippingCost = async (req, res) => {
         }
 
         res.status(200).json({
-            message: 'Berhasil mendapatkan ongkos kirim',
-            data: { distance, normalized_distance, shipping_cost, currency }
+            distance, normalized_distance, shipping_cost, currency
         });
     } catch (error) {
         console.error("Error message:", error.message);
