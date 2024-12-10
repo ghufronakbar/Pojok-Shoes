@@ -1,7 +1,9 @@
-const  Sequelize  = require('sequelize');
+require('dotenv').config();
+const Sequelize = require('sequelize');
+const { DB_NAME } = require('../constants');
 
 // Buat instance Sequelize
-const sequelize = new Sequelize('db-sepatubaru', 'root', '', {
+const sequelize = new Sequelize(DB_NAME, 'root', '', {
   host: 'localhost',
   dialect: 'mysql',
   dialectOptions: {
