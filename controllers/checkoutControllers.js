@@ -4,11 +4,12 @@ const Pembayaran = require('../models/Pembayaran')
 const midtransClient = require('midtrans-client');
 const { Sequelize } = require('sequelize');
 const sequelize = require('../config/pojokShoes');
+const { MIDTRANS_SERVER_KEY } = require('../constants');
 
 
 const snap = new midtransClient.Snap({
     isProduction: false,
-    serverKey: 'SB-Mid-server-f8H8CZX1-QgWp36zWfztt4tQ',
+    serverKey: MIDTRANS_SERVER_KEY,
 });
 
 exports.createCheckout = async (req, res) => {
