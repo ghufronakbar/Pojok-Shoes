@@ -37,7 +37,7 @@ const Pembayaran = sequelize.define('Pembayaran', {
     allowNull: true,
   },
 }, {
-  tableName: 'Pembayaran',
+  tableName: 'pembayaran',
   timestamps: false,
 });
 
