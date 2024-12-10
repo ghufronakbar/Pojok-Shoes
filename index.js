@@ -31,13 +31,13 @@ app.use('/api/pembayaran', routesPembayaran); // Tambahkan route pembayaran
 app.use('/api/webhook', routesMidtransWebhook);
 
 // Synchronize the database models
-// sequelize.sync({ alter: true })
-//   .then(() => {
-//     console.log('Database synchronized');
-//   })
-//   .catch(err => {
-//     console.error('Unable to synchronize the database:', err);
-//   });
+sequelize.sync({ alter: true })
+  .then(() => {
+    console.log('Database synchronized');
+  })
+  .catch(err => {
+    console.error('Unable to synchronize the database:', err);
+  });
 
 // Error handling middleware
 app.use((error, req, res, next) => {
