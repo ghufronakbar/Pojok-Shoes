@@ -11,7 +11,7 @@ const routesDetailkeranjang = require('./routes/routesDetailkeranjang');
 const routesCheckout = require('./routes/routesCheckout');
 const routesPembayaran = require('./routes/routesPembayaran');
 const routesMidtransWebhook = require('./routes/api');
-const { PORT } = require('./constants');
+const { PORT, DB_PASS, DB_HOST, DB_NAME, DB_USER } = require('./constants');
 
 const app = express();
 
@@ -48,5 +48,6 @@ app.use((error, req, res, next) => {
 });
 
 app.listen(PORT, () => {
+  print({ DB_HOST, DB_NAME, DB_USER, DB_PASS });
   console.log(`Server is running on port ${PORT}`);
 });
