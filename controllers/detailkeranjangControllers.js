@@ -1,4 +1,4 @@
-const DetailKeranjang = require('../models/DetailKeranjang');
+const DetailKeranjang = require('../models/Detailkeranjang');
 const Layanan = require('../models/Layanan');
 const Keranjang = require('../models/Keranjang');
 
