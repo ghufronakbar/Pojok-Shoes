@@ -74,7 +74,7 @@ exports.viewDetailKeranjang = async (req, res) => {
             include: [{
                 model: Layanan,
                 as: 'layanan',
-                attributes: ['layanan_nama'],
+                attributes: ['layanan_nama', "layanan_picture", "status"],
                 required: true
             }]
         });
@@ -86,10 +86,12 @@ exports.viewDetailKeranjang = async (req, res) => {
         }
 
         const formattedDetails = details.map(detail => ({
-            detail_id: detail.detail_id,
+            detail_id: detail?.detail_id,
             layanan_nama: detail.layanan?.layanan_nama || 'Unknown Service',
-            jumlah_sepatu: detail.jumlah_sepatu,
-            detail_harga: detail.detail_harga
+            jumlah_sepatu: detail?.jumlah_sepatu,
+            detail_harga: detail?.detail_harga,
+            layanan_picture: detail.layanan?.layanan_picture,
+            layanan_status: detail.layanan?.status
         }));
 
         res.status(200).json({
