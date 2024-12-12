@@ -1,5 +1,5 @@
 const midtransClient = require('midtrans-client');
-const { MIDTRANS_SERVER_KEY, MIDTRANS_CLIENT_KEY } = require('../constants');
+const { MIDTRANS_SERVER_KEY, MIDTRANS_CLIENT_KEY } = require('../constants/midtrans');
 
 const midtrans = new midtransClient.Snap({
     isProduction: false,

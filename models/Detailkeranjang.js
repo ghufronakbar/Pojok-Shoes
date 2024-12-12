@@ -32,6 +32,11 @@ const detailkeranjang = sequelize.define('detailkeranjang', {
     detail_harga: {
         type: DataTypes.INTEGER,
         allowNull: false,
+    },
+    detail_status: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        defaultValue: 'dipesan'        
     }
 
 }, {

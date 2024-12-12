@@ -1,5 +1,6 @@
 const Layanan = require('../models/Layanan');
 const { Op } = require('sequelize');
+const removeCloudinary = require('../helpers/cloudinary/removeCloudinary');
 
 // Mendapatkan layanan berdasarkan kategori (group ID)
 const getLayananByKategori = async (req, res) => {
@@ -66,8 +67,50 @@ const getLayananByKategori = async (req, res) => {
 // Mendapatkan semua layanan
 const getAllLayanan = async (req, res) => {
   try {
-    const layanan = await Layanan.findAll();
-    res.json(layanan);
+    const layanans = await Layanan.findAll();
+    res.json(layanans);
+  } catch (error) {
+    console.error('Error saat mendapatkan layanan:', error);
+    res.status(500).json({ error: 'Gagal mendapatkan layanan', details: error.message });
+  }
+};
+
+const getLayananCheck = async (req, res) => {
+  try {
+
+    const queryLayanan = async (name) => await Layanan.findAll({ where: { layanan_nama: { [Op.startsWith]: name } } })
+
+    const [fastClean, deepClean, reglue, recolor] = await Promise.all([
+      queryLayanan('Fast Clean'),
+      queryLayanan('Deep Clean'),
+      queryLayanan('Reglue'),
+      queryLayanan('Recolor'),
+    ]);
+
+    const data = {
+      fast_clean: {
+        name: "Fast Clean",
+        picture: fastClean.find(layanan => layanan?.layanan_picture !== null)?.layanan_picture || null,
+        layanan_deskripsi: fastClean.find(layanan => layanan?.layanan_deskripsi !== null)?.layanan_deskripsi || '',
+      },
+      deep_clean: {
+        name: "Deep Clean",
+        picture: deepClean.find(layanan => layanan?.layanan_picture !== null)?.layanan_picture || null,
+        layanan_deskripsi: deepClean.find(layanan => layanan?.layanan_deskripsi !== null)?.layanan_deskripsi || '',
+      },
+      reglue: {
+        name: "Reglue",
+        picture: reglue.find(layanan => layanan?.layanan_picture !== null)?.layanan_picture || null,
+        layanan_deskripsi: reglue.find(layanan => layanan?.layanan_deskripsi !== null)?.layanan_deskripsi || '',
+      },
+      recolor: {
+        name: "Recolor",
+        picture: recolor.find(layanan => layanan?.layanan_picture !== null)?.layanan_picture || null,
+        layanan_deskripsi: recolor.find(layanan => layanan?.layanan_deskripsi !== null)?.layanan_deskripsi || '',
+      }
+    }
+
+    return res.json(data)
   } catch (error) {
     console.error('Error saat mendapatkan layanan:', error);
     res.status(500).json({ error: 'Gagal mendapatkan layanan', details: error.message });
@@ -95,7 +138,7 @@ const getLayananById = async (req, res) => {
 // Menambah layanan baru
 const createLayanan = async (req, res) => {
   const { layanan_nama, layanan_harga, layanan_deskripsi } = req.body;
-  
+
   try {
     const newLayanan = await Layanan.create({
       layanan_nama,
@@ -154,11 +197,42 @@ const deleteLayanan = async (req, res) => {
   }
 };
 
+const editPictureLayanan = async (req, res) => {
+  const { id } = req.params
+  const file = req.file
+  if (!file) {
+    return res.status(404).json({ error: 'File tidak ditemukan' });
+  }
+  if (isNaN(id)) {
+    removeCloudinary(file.path, 'layanan');
+    return res.status(404).json({ error: 'ID harus angka' });
+  }
+  try {
+    const layanan = await Layanan.findByPk(id);
+    if (!layanan) {
+      removeCloudinary(file.path, 'layanan');
+      return res.status(404).json({ error: 'Layanan tidak ditemukan' });
+    }
+    if (layanan.layanan_picture) {
+      removeCloudinary(layanan.layanan_picture, 'layanan');
+    }
+    layanan.layanan_picture = file.path;
+    await layanan.save();
+    return res.json({ message: 'Layanan berhasil diperbarui', layanan });
+  } catch (error) {
+    console.error('Error saat mengedit gambar layanan:', error);
+    res.status(500).json({ error: 'Gagal menghapus layanan', details: error.message });
+  }
+}
+
 module.exports = {
   getAllLayanan,
   getLayananById,
   createLayanan,
   updateLayanan,
   deleteLayanan,
-  getLayananByKategori
+  getLayananByKategori,
+  getLayananCheck,
+  editPictureLayanan
 };
+

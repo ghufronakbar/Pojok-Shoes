@@ -2,7 +2,7 @@
 const Pembayaran = require('../models/Pembayaran');
 const midtransClient = require('midtrans-client');
 const crypto = require('crypto');
-const { MIDTRANS_SERVER_KEY, MIDTRANS_CLIENT_KEY } = require('../constants');
+const { MIDTRANS_SERVER_KEY, MIDTRANS_CLIENT_KEY } = require('../constants/midtrans');
 
 const handleMidtransWebhook = async (req, res) => {
     try {

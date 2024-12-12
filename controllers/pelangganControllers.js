@@ -48,7 +48,7 @@ const login = async (req, res) => {
   const { pelanggan_nama, pelanggan_password } = req.body;
 
   // Debug log untuk data yang diterima dari client
-  console.log("Login attempt with username:", pelanggan_nama);
+  // console.log("Login attempt with username:", pelanggan_nama);
 
   try {
     // Cari pelanggan berdasarkan nama
@@ -74,11 +74,7 @@ const login = async (req, res) => {
 
     // Kirim data pelanggan beserta token
     res.json({
-      pelanggan_id: pelanggan.pelanggan_id,
-      pelanggan_nama: pelanggan.pelanggan_nama,
-      pelanggan_alamat: pelanggan.pelanggan_alamat,
-      pelanggan_nomor: pelanggan.pelanggan_nomor,
-      pelanggan_email: pelanggan.pelanggan_email,
+      ...pelanggan.dataValues,
       token
     });
   } catch (error) {
@@ -92,43 +88,88 @@ const login = async (req, res) => {
 
 
 const updateProfile = async (req, res) => {
-  const { pelanggan_nama, pelanggan_alamat, pelanggan_nomor, pelanggan_email, pelanggan_password } = req.body;
+  const { pelanggan_nama, pelanggan_alamat, pelanggan_nomor, pelanggan_email } = req.body;
 
   try {
-    const pelangganId = req.user.pelanggan_id; // Get ID from request object provided by JWT middleware
-    console.log('Pelanggan ID from token:', pelangganId); // Debug: check ID from token
+    const pelangganId = req.user.pelanggan_id;
 
-    // Get pelanggan object to be updated based on ID
     const pelanggan = await Pelanggan.findByPk(pelangganId);
 
-    // Ensure pelanggan is found before proceeding with the update
+
     if (!pelanggan) {
       return res.status(404).json({ error: 'Pelanggan not found' });
     }
 
-    // Update properties to be changed
+    const checkEmailPhone = await Pelanggan.findOne({
+      where: {
+        [Sequelize.Op.or]: [
+          { pelanggan_nomor },
+          { pelanggan_email },
+          { pelanggan_nama }
+        ]
+      }
+    });
+
+    if (checkEmailPhone) {
+      if (checkEmailPhone.pelanggan_id !== pelangganId) {
+        return res.status(400).json({ error: 'Nomor telepon, email, atau username sudah terdaftar' });
+      }
+    }
+
     const updatedPelanggan = {
       pelanggan_nama: pelanggan_nama || pelanggan.pelanggan_nama,
       pelanggan_alamat: pelanggan_alamat || pelanggan.pelanggan_alamat,
       pelanggan_nomor: pelanggan_nomor || pelanggan.pelanggan_nomor,
-      pelanggan_email: pelanggan_email || pelanggan.pelanggan_email, // Add email update
+      pelanggan_email: pelanggan_email || pelanggan.pelanggan_email,
     };
 
-    // Hash password if present and set a new one
-    if (pelanggan_password) {
-      const hashedPassword = await bcrypt.hash(pelanggan_password, 10);
-      updatedPelanggan.pelanggan_password = hashedPassword;
-    }
 
-    // Save changes to the database
     await Pelanggan.update(updatedPelanggan, { where: { pelanggan_id: pelangganId } });
 
-    res.json({ message: 'Profile updated successfully' });
+    const pelangganUpdated = await Pelanggan.findByPk(pelangganId);
+
+    res.json({ message: 'Profile updated successfully', ...pelangganUpdated.dataValues });
   } catch (error) {
     console.error('Failed to update profile:', error);
     res.status(500).json({ error: 'Failed to update profile', details: error.message });
   }
 };
+
+const updatePassword = async (req, res) => {
+  const { new_password, old_password } = req.body;
+
+  if (!new_password || !old_password) {
+    return res.status(400).json({ error: 'New password and old password are required' });
+  }
+
+  try {
+    const pelangganId = req.user.pelanggan_id;
+
+    const pelanggan = await Pelanggan.findByPk(pelangganId);
+
+    if (!pelanggan) {
+      return res.status(404).json({ error: 'Pelanggan not found' });
+    }
+
+    // Memeriksa apakah password lama cocok dengan password di database
+    const isPasswordValid = await bcrypt.compare(old_password, pelanggan.pelanggan_password);
+
+    if (!isPasswordValid) {
+      return res.status(400).json({ error: 'Password Lama Salah' });
+    }
+
+    // Hash password baru
+    const hashedPassword = await bcrypt.hash(new_password, 10);
+
+    // Update password di database
+    await Pelanggan.update({ pelanggan_password: hashedPassword }, { where: { pelanggan_id: pelangganId } });
+
+    res.json({ message: 'Berhasil mengganti password' });
+  } catch (error) {
+    console.error('Failed to update password:', error);
+    res.status(500).json({ error: 'Failed to update password', details: error.message });
+  }
+}
 
 
 const getProfile = async (req, res) => {
@@ -159,4 +200,4 @@ const getProfile = async (req, res) => {
 };
 
 
-module.exports = { register, login, updateProfile, getProfile };
+module.exports = { register, login, updateProfile, getProfile, updatePassword };

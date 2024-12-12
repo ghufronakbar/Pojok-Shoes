@@ -37,8 +37,12 @@ const Pelanggan = sequelize.define('Pelanggan', {
 });
 
 // Custom method for Pelanggan
-Pelanggan.findByName = async function(name) {
+Pelanggan.findByName = async function (name) {
   return await this.findOne({ where: { pelanggan_nama: name } });
+};
+
+Pelanggan.findById = async function (id) {
+  return await this.findOne({ where: { pelanggan_id: id } });
 };
 
 // Ekspor model

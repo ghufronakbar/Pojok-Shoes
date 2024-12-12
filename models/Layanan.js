@@ -20,6 +20,14 @@ const Layanan = sequelize.define('Layanan', {
   layanan_deskripsi: {
     type: DataTypes.STRING,
     allowNull: false
+  },
+  layanan_picture: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  status: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
   }
 }, {
   tableName: 'layanan',

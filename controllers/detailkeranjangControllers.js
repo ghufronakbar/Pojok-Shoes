@@ -1,5 +1,4 @@
-// controllers/detailKeranjangController.js
-const DetailKeranjang = require('../models/Detailkeranjang');
+const DetailKeranjang = require('../models/DetailKeranjang');
 const Layanan = require('../models/Layanan');
 const Keranjang = require('../models/Keranjang');
 
@@ -8,10 +7,18 @@ exports.addDetailKeranjang = async (req, res) => {
         const { keranjang_id, layanan } = req.body;
 
         // Validasi jika layanan adalah array atau objek tunggal
-        const layananData = Array.isArray(layanan) ? layanan : [layanan];
+        const layananDatas = Array.isArray(layanan) ? layanan : [layanan];
+
+        for (const layananData of layananDatas) {
+            const layanan = await Layanan.findByPk(layananData.layanan_id);
+            if (!layanan) {
+                return res.status(404).json({ error: 'Layanan tidak ditemukan' });
+            }
+            layananData.detail_harga = layanan.layanan_harga * layananData.jumlah_sepatu;
+        }
 
         // Membuat entri detail keranjang untuk setiap item layanan
-        const detailKeranjangItems = layananData.map(async (item) => {
+        const detailKeranjangItems = layananDatas.map(async (item) => {            
             return await DetailKeranjang.create({
                 keranjang_id,
                 layanan_id: item.layanan_id,
@@ -19,10 +26,25 @@ exports.addDetailKeranjang = async (req, res) => {
                 detail_harga: item.detail_harga
             });
         });
-
-        // Menunggu semua entri layanan ditambahkan ke database
         const newDetails = await Promise.all(detailKeranjangItems);
+        
+        const detailKeranjangs = await DetailKeranjang.findAll({ where: { keranjang_id } });
+        let newTotal = 0;
 
+        for (const detailKeranjang of detailKeranjangs) {
+            newTotal += detailKeranjang.detail_harga
+            console.log({ newTotal })
+        }
+
+        
+        const [updatedRows] = await Keranjang.update({ keranjang_jumlah_harga: newTotal }, { where: { keranjang_id } });
+        
+        if (updatedRows === 0) {
+            return res.status(500).json({ error: 'Failed to update keranjang_jumlah_harga' });
+        }
+        // Menunggu semua entri layanan ditambahkan ke database
+        
+        // const findUpdatedKeranjang = await Keranjang.findOne({ where: { keranjang_id } });
         res.status(201).json({
             message: 'Detail keranjang berhasil ditambahkan',
             data: newDetails
@@ -58,8 +80,8 @@ exports.viewDetailKeranjang = async (req, res) => {
         });
 
         if (!details || details.length === 0) {
-            return res.status(404).json({ 
-                message: 'No details found for this keranjang' 
+            return res.status(404).json({
+                message: 'No details found for this keranjang'
             });
         }
 
@@ -77,7 +99,7 @@ exports.viewDetailKeranjang = async (req, res) => {
 
     } catch (error) {
         console.error('Error in viewDetailKeranjang:', error);
-        res.status(500).json({ 
+        res.status(500).json({
             error: 'Failed to retrieve details for keranjang',
             message: error.message
         });
@@ -129,18 +151,18 @@ exports.deleteDetailKeranjang = async (req, res) => {
             }
 
             // Mengembalikan response dengan total harga baru
-            res.status(200).json({ 
+            res.status(200).json({
                 message: 'Detail deleted and harga updated successfully',
-                totalHarga: totalHarga 
+                totalHarga: totalHarga
             });
         } else {
             res.status(404).json({ error: 'Detail not found' });
         }
     } catch (error) {
         console.error('Error in deleteDetailKeranjang:', error);
-        res.status(500).json({ 
+        res.status(500).json({
             error: 'Failed to delete detail from keranjang',
-            details: error.message 
+            details: error.message
         });
     }
 };

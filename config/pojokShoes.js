@@ -21,7 +21,7 @@ const sequelize = new Sequelize(DB_NAME, DB_USER, DB_PASS, {
 // Uji koneksi ke database
 sequelize.authenticate()
   .then(() => {
-    console.log('Berhasil terhubung ke database  Pojok Shoescare');
+    console.log('Berhasil terhubung ke database ' + DB_NAME);
   })
   .catch(error => {
     console.error('Gagal terhubung ke database:', error.message);

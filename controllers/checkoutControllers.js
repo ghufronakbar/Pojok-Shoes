@@ -1,11 +1,14 @@
 const Checkout = require('../models/Checkout');
 const Keranjang = require('../models/Keranjang');
+const Pelanggan = require('../models/Pelanggan');
 const Pembayaran = require('../models/Pembayaran')
 const midtransClient = require('midtrans-client');
 const { Sequelize } = require('sequelize');
 const sequelize = require('../config/pojokShoes');
-const { MIDTRANS_SERVER_KEY } = require('../constants');
+const { MIDTRANS_SERVER_KEY } = require('../constants/midtrans');
+const getDistance = require('../helpers/getDistance');
 
+const SHIPPING_COST = 4000
 
 const snap = new midtransClient.Snap({
     isProduction: false,
@@ -16,7 +19,12 @@ exports.createCheckout = async (req, res) => {
     const t = await sequelize.transaction(); // Start a transaction
 
     try {
-        const { keranjang_id } = req.body;
+        const { keranjang_id, latitude, longitude } = req.body;
+
+        if (isNaN(Number(latitude)) || isNaN(Number(longitude))) {
+            return res.status(400).json({ error: 'latitude and longitude must be numbers' });
+        }
+
 
         // Cek apakah keranjang tersedia
         const keranjang = await Keranjang.findOne({
@@ -24,13 +32,27 @@ exports.createCheckout = async (req, res) => {
                 keranjang_id,
                 keranjang_status: '1', // Pastikan keranjang aktif
             },
-            transaction: t
+            transaction: t,
         });
+
 
         if (!keranjang) {
             await t.rollback();
             return res.status(404).json({ error: 'Keranjang tidak ditemukan atau sudah diproses' });
         }
+
+        const pelanggan = await Pelanggan.findById(keranjang.pelanggan_id)
+
+        const distance = getDistance(Number(latitude), Number(longitude));
+        const normalized_distance = Math.round(distance);
+
+        let shippingCost = 0
+
+        if (normalized_distance > 2) {
+            shippingCost = normalized_distance * SHIPPING_COST
+        }
+
+        let totalCost = Math.round(shippingCost + Number(keranjang.keranjang_jumlah_harga))        
 
         // Buat data checkout
         const checkout = await Checkout.create({
@@ -44,18 +66,19 @@ exports.createCheckout = async (req, res) => {
 
         // Update status keranjang menjadi tidak aktif
         keranjang.keranjang_status = '0';
+        keranjang.keranjang_jumlah_harga = totalCost - shippingCost
         await keranjang.save({ transaction: t });
 
         // Buat parameter untuk Midtrans snapToken
         const parameter = {
             transaction_details: {
                 order_id: `ORDER-${checkoutId}`,
-                gross_amount: keranjang.keranjang_jumlah_harga, // Total harga dari keranjang
+                gross_amount: totalCost, // Total harga dari keranjang
             },
             item_details: [], // Tambahkan detail item jika diperlukan
             customer_details: {
-                email: req.body.email || 'customer@example.com', // Email pelanggan
-                first_name: req.body.nama || 'Customer',
+                email: req.body.email || pelanggan?.pelanggan_email || 'customer@example.com', // Email pelanggan
+                first_name: req.body.nama || pelanggan?.pelanggan_nama || 'Customer',
             },
         };
 
@@ -65,7 +88,7 @@ exports.createCheckout = async (req, res) => {
         // Simpan data pembayaran ke tabel pembayaran
         const pembayaran = await Pembayaran.create({
             checkout_id: checkoutId, // Gunakan checkout_id, bukan checkout.id atau checkout.dataValues.id
-            pembayaran_jumlahbayar: keranjang.keranjang_jumlah_harga,
+            pembayaran_jumlahbayar: totalCost,
             pembayaran_metode: 'Midtrans',
             pembayaran_status: 'pending', // Status awal pembayaran
             pembayaran_waktu: new Date(),
@@ -78,7 +101,8 @@ exports.createCheckout = async (req, res) => {
         res.status(201).json({
             message: 'Checkout berhasil dibuat',
             checkout,
-            snapToken: snapResponse.token, // Kembalikan snapToken ke response
+            snapToken: snapResponse.token,
+            snapResponse
         });
     } catch (error) {
         // Rollback transaksi jika terjadi kesalahan

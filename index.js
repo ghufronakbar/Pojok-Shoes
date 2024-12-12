@@ -4,6 +4,7 @@ const cors = require('cors');
 const sequelize = require('./config/pojokShoes');
 
 const routesUser = require('./routes/routesUser');
+const routesHistory = require('./routes/routesHistory');
 const routesHelper = require('./routes/routesHelper');
 const routesLayanan = require('./routes/routesLayanan');
 const routesKeranjang = require('./routes/routesKeranjang');
@@ -11,7 +12,7 @@ const routesDetailkeranjang = require('./routes/routesDetailkeranjang');
 const routesCheckout = require('./routes/routesCheckout');
 const routesPembayaran = require('./routes/routesPembayaran');
 const routesMidtransWebhook = require('./routes/api');
-const { PORT, DB_PASS, DB_HOST, DB_NAME, DB_USER } = require('./constants');
+const { PORT, IS_PRODUCTION } = require('./constants');
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use('/api', routesUser);
+app.use('/api/history', routesHistory);
 app.use('/api/helper', routesHelper);
 app.use('/api/layanan', routesLayanan);
 app.use('/api/keranjang', routesKeranjang);
@@ -31,7 +33,7 @@ app.use('/api/pembayaran', routesPembayaran); // Tambahkan route pembayaran
 app.use('/api/webhook', routesMidtransWebhook);
 
 // Synchronize the database models
-sequelize.sync({ alter: true })
+IS_PRODUCTION === "true" && sequelize.sync({ alter: true })
   .then(() => {
     console.log('Database synchronized');
   })
@@ -48,6 +50,5 @@ app.use((error, req, res, next) => {
 });
 
 app.listen(PORT, () => {
-  console.log({ DB_HOST, DB_NAME, DB_USER, DB_PASS });
   console.log(`Server is running on port ${PORT}`);
 });
