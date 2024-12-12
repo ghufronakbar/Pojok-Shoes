@@ -25,7 +25,7 @@ const Keranjang = sequelize.define('keranjang', {
         defaultValue: '1', // Nilai default jika tidak diatur
     },
 }, {
-    tableName: 'Keranjang',
+    tableName: 'keranjang',
     timestamps: false,
 });
 

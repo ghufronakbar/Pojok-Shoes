@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/pojokShoes');
 
-const Checkout = sequelize.define('Checkout', {
+const Checkout = sequelize.define('checkout', {
     checkout_id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
@@ -20,7 +20,7 @@ const Checkout = sequelize.define('Checkout', {
         defaultValue: 'dipesan',
     },
 }, {
-    tableName: 'Checkout',
+    tableName: 'checkout',
     timestamps: false,
 });
 

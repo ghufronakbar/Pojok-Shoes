@@ -11,7 +11,7 @@ const Pembayaran = sequelize.define('Pembayaran', {
   checkout_id: {
     type: DataTypes.INTEGER,
     references: {
-      model: 'Checkout',
+      model: 'checkout',
       key: 'checkout_id',
     },
     allowNull: false,
