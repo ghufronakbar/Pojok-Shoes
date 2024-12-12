@@ -200,16 +200,20 @@ const deleteLayanan = async (req, res) => {
 const editPictureLayanan = async (req, res) => {
   const { id } = req.params
   const file = req.file
+  console.log("edit picture layanan hit endpoint")
   if (!file) {
+    console.log("file tidak ditemukan");
     return res.status(404).json({ error: 'File tidak ditemukan' });
   }
   if (isNaN(id)) {
     removeCloudinary(file.path, 'layanan');
+    console.log("ID harus angka");
     return res.status(404).json({ error: 'ID harus angka' });
   }
   try {
     const layanan = await Layanan.findByPk(id);
     if (!layanan) {
+      console.log("Tidak ada layanan");
       removeCloudinary(file.path, 'layanan');
       return res.status(404).json({ error: 'Layanan tidak ditemukan' });
     }
@@ -218,8 +222,10 @@ const editPictureLayanan = async (req, res) => {
     }
     layanan.layanan_picture = file.path;
     await layanan.save();
+    console.log("Layanan berhasil diperbarui");
     return res.json({ message: 'Layanan berhasil diperbarui', layanan });
   } catch (error) {
+    console.log("Tidak ada layanan");
     console.error('Error saat mengedit gambar layanan:', error);
     res.status(500).json({ error: 'Gagal menghapus layanan', details: error.message });
   }

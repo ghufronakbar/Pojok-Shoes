@@ -2,8 +2,6 @@ const { Sequelize } = require('sequelize');
 const sequelize = require('../config/pojokShoes');
 const Keranjang = require('../models/Keranjang');
 const Checkout = require('../models/Checkout');
-const DetailKeranjang = require('../models/DetailKeranjang');
-const Layanan = require('../models/Layanan');
 
 const getAllHistories = async (req, res) => {
     try {
