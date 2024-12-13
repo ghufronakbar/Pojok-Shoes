@@ -16,8 +16,8 @@ const Checkout = sequelize.define('checkout', {
         defaultValue: DataTypes.NOW,
     },
     checkout_status: {
-        type: DataTypes.ENUM('dipesan', 'dijemput', 'diproses', 'dibayar', 'selesai'),
-        defaultValue: 'dipesan',
+        type: DataTypes.ENUM('menunggu', 'diproses', 'selesai'),
+        defaultValue: 'menunggu',
     },
 }, {
     tableName: 'checkout',

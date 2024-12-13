@@ -40,7 +40,7 @@ const detailkeranjang = sequelize.define('detailkeranjang', {
     }
 
 }, {
-    tableName: 'detailkeranjang', // Exact name in lowercase
+    tableName: 'detailkeranjang', 
     timestamps: false,
 });
 
