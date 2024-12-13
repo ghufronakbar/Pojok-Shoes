@@ -110,7 +110,7 @@ const updateProfile = async (req, res) => {
       }
     });
 
-    // console.log({ checkEmailPhone })
+    console.log({ checkEmailPhone })
 
     if (checkEmailPhone) {
       if (checkEmailPhone.pelanggan_id !== pelangganId) {
