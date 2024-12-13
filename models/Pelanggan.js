@@ -26,10 +26,7 @@ const Pelanggan = sequelize.define('Pelanggan', {
   pelanggan_email: {  // New field for email
     type: DataTypes.STRING,
     allowNull: false,
-    unique: true,  // Ensure email is unique
-    validate: {
-      isEmail: true // Ensure email format is valid
-    }
+    unique: true,  // Ensure email is unique    
   }
 }, {
   tableName: 'pelanggan',
