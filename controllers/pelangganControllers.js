@@ -103,9 +103,9 @@ const updateProfile = async (req, res) => {
     const checkEmailPhone = await Pelanggan.findOne({
       where: {
         [Sequelize.Op.or]: [
-          { pelanggan_nomor },
-          { pelanggan_email },
-          { pelanggan_nama }
+          { pelanggan_nomor: pelanggan_nomor },
+          { pelanggan_email: pelanggan_email },
+          { pelanggan_nama: pelanggan_nama }
         ]
       }
     });
