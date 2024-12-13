@@ -36,9 +36,9 @@ const getAllHistories = async (req, res) => {
                     dk.detail_status,
                     l.layanan_nama
                 FROM 
-                    DetailKeranjang dk
+                    detailkeranjang dk
                 LEFT JOIN 
-                    Layanan l ON l.layanan_id = dk.layanan_id
+                    layanan l ON l.layanan_id = dk.layanan_id
                 WHERE 
                     dk.keranjang_id = :keranjangId
             `, {
