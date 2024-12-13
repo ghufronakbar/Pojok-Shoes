@@ -110,13 +110,12 @@ const updateProfile = async (req, res) => {
       }
     });
 
-    console.log({ checkEmailPhone })
+    console.log({ checkEmailPhonePelangganId : checkEmailPhone?.pelanggan_id, pelangganId });
 
-    if (checkEmailPhone) {
-      if (checkEmailPhone.pelanggan_id !== pelangganId) {
-        return res.status(400).json({ error: 'Nomor telepon, email, atau username sudah terdaftar' });
-      }
+    if (checkEmailPhone && checkEmailPhone.pelanggan_id !== pelangganId) {
+      return res.status(400).json({ error: 'Nomor telepon, email, atau username sudah terdaftar' });
     }
+
 
     const updatedPelanggan = {
       pelanggan_nama: pelanggan_nama || pelanggan.pelanggan_nama,
