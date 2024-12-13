@@ -110,6 +110,8 @@ const updateProfile = async (req, res) => {
       }
     });
 
+    // console.log({ checkEmailPhone })
+
     if (checkEmailPhone) {
       if (checkEmailPhone.pelanggan_id !== pelangganId) {
         return res.status(400).json({ error: 'Nomor telepon, email, atau username sudah terdaftar' });
