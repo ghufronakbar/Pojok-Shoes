@@ -149,14 +149,14 @@ const updatePassword = async (req, res) => {
     const pelanggan = await Pelanggan.findByPk(pelangganId);
 
     if (!pelanggan) {
-      return res.status(404).json({ error: 'Pelanggan not found' });
+      return res.status(404).json({ message: 'Pelanggan not found' });
     }
 
     // Memeriksa apakah password lama cocok dengan password di database
     const isPasswordValid = await bcrypt.compare(old_password, pelanggan.pelanggan_password);
 
     if (!isPasswordValid) {
-      return res.status(400).json({ error: 'Password Lama Salah' });
+      return res.status(400).json({ message: 'Password Lama Salah' });
     }
 
     // Hash password baru
