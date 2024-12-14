@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const Pelanggan = require('../models/Pelanggan');
 const { Sequelize } = require('sequelize');
 const { SECRET_KEY } = require('../constants');
-
+const removeCloudinary = require('../helpers/cloudinary/removeCloudinary');
 
 const register = async (req, res) => {
   const { pelanggan_nama, pelanggan_alamat, pelanggan_nomor, pelanggan_password, pelanggan_email } = req.body;
@@ -110,7 +110,7 @@ const updateProfile = async (req, res) => {
       }
     });
 
-    console.log({ checkEmailPhonePelangganId : checkEmailPhone?.pelanggan_id, pelangganId });
+    console.log({ checkEmailPhonePelangganId: checkEmailPhone?.pelanggan_id, pelangganId });
 
     if (checkEmailPhone && checkEmailPhone.pelanggan_id !== pelangganId) {
       return res.status(400).json({ error: 'Nomor telepon, email, atau username sudah terdaftar' });
@@ -174,22 +174,20 @@ const updatePassword = async (req, res) => {
 
 
 const getProfile = async (req, res) => {
-  try {
-    // Gunakan req.user dari middleware authentication
-    // Ini lebih aman dan langsung mengambil dari middleware
+  try {    
     const pelanggan = req.user;
 
     if (!pelanggan) {
       return res.status(404).json({ error: 'Pelanggan not found' });
     }
-
-    // Send response with pelanggan data, including email
+    
     res.json({
       pelanggan_id: pelanggan.pelanggan_id,
       pelanggan_nama: pelanggan.pelanggan_nama,
       pelanggan_alamat: pelanggan.pelanggan_alamat,
       pelanggan_nomor: pelanggan.pelanggan_nomor,
       pelanggan_email: pelanggan.pelanggan_email,
+      pelanggan_picture: pelanggan.pelanggan_picture
     });
   } catch (error) {
     console.error('Error fetching profile data:', error);
@@ -201,4 +199,56 @@ const getProfile = async (req, res) => {
 };
 
 
-module.exports = { register, login, updateProfile, getProfile, updatePassword };
+const postPicture = async (req, res) => {
+  try {
+    const picture = req.file;
+    const { pelanggan_id } = req.user;
+    if (!picture) {
+      return res.status(400).json({ error: 'No picture uploaded' });
+    }
+    const pelanggan = await Pelanggan.findByPk(pelanggan_id);
+    if (!pelanggan) {
+      return res.status(404).json({ error: 'Pelanggan not found' });
+    }
+    if (pelanggan.pelanggan_picture) {
+      removeCloudinary(pelanggan.pelanggan_picture, 'profile');
+    }
+    pelanggan.pelanggan_picture = picture.path;
+    const updatedPelanggan = await pelanggan.save();
+    res.json({ message: 'Picture uploaded successfully', ...updatedPelanggan.dataValues });
+
+  }
+  catch (error) {
+    console.error('Error uploading picture:', error);
+    res.status(500).json({
+      error: 'Failed to upload picture',
+      details: error.message
+    });
+  }
+}
+
+const deletePicture = async (req, res) => {
+  try {
+    const { pelanggan_id } = req.user;
+    const pelanggan = await Pelanggan.findByPk(pelanggan_id);
+    if (!pelanggan) {
+      return res.status(404).json({ error: 'Pelanggan not found' });
+    }
+    if (pelanggan.pelanggan_picture) {
+      removeCloudinary(pelanggan.pelanggan_picture, 'profile');
+    }
+    pelanggan.pelanggan_picture = null;
+    const updatedPelanggan = await pelanggan.save();
+    res.json({ message: 'Picture deleted successfully', ...updatedPelanggan.dataValues });
+  }
+  catch (error) {
+    console.error('Error deleting picture:', error);
+    res.status(500).json({
+      error: 'Failed to delete picture',
+      details: error.message
+    });
+  }
+}
+
+
+module.exports = { register, login, updateProfile, getProfile, updatePassword, postPicture, deletePicture };

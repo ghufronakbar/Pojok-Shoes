@@ -23,10 +23,14 @@ const Pelanggan = sequelize.define('Pelanggan', {
     type: DataTypes.STRING,
     allowNull: false
   },
-  pelanggan_email: {  // New field for email
+  pelanggan_email: {
     type: DataTypes.STRING,
     allowNull: false,
-    unique: true,  // Ensure email is unique    
+    unique: true,
+  },
+  pelanggan_picture: {
+    type: DataTypes.TEXT,    
+    allowNull: true
   }
 }, {
   tableName: 'pelanggan',

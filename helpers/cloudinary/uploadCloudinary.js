@@ -1,7 +1,7 @@
 const cloudinary = require('../../config/cloudinary')
 const multer = require('multer');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
-const { CLOUDINARY_LAYANAN, } = require('../../constants/cloudinary');
+const { CLOUDINARY_LAYANAN, CLOUDINARY_PROFILE, } = require('../../constants/cloudinary');
 const randomCharacter = require('../randomCharacter');
 
 const uploadCloudinary = (target) => {
@@ -9,7 +9,10 @@ const uploadCloudinary = (target) => {
     switch (target) {
         case 'layanan':
             folder = CLOUDINARY_LAYANAN;
-            break;        
+            break;
+        case 'profile':
+            folder = CLOUDINARY_PROFILE;
+            break;
         default:
             throw new Error('Target not found');
     }
