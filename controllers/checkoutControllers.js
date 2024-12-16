@@ -19,18 +19,14 @@ exports.createCheckout = async (req, res) => {
     const t = await sequelize.transaction(); // Start a transaction
 
     try {
-        const { keranjang_id, latitude, longitude } = req.body;
-
-        if (isNaN(Number(latitude)) || isNaN(Number(longitude))) {
-            return res.status(400).json({ error: 'latitude and longitude must be numbers' });
-        }
+        const { keranjang_id } = req.body;
 
 
         // Cek apakah keranjang tersedia
         const keranjang = await Keranjang.findOne({
             where: {
                 keranjang_id,
-                keranjang_status: '1', // Pastikan keranjang aktif
+                keranjang_status: '1',
             },
             transaction: t,
         });
@@ -43,7 +39,7 @@ exports.createCheckout = async (req, res) => {
 
         const pelanggan = await Pelanggan.findById(keranjang.pelanggan_id)
 
-        const distance = getDistance(Number(latitude), Number(longitude));
+        const distance = getDistance(Number(pelanggan?.latitude || 0), Number(pelanggan?.longitude || 0));
         const normalized_distance = Math.round(distance);
 
         let shippingCost = 0
@@ -52,7 +48,7 @@ exports.createCheckout = async (req, res) => {
             shippingCost = normalized_distance * SHIPPING_COST
         }
 
-        let totalCost = Math.round(shippingCost + Number(keranjang.keranjang_jumlah_harga))        
+        let totalCost = Math.round(shippingCost + Number(keranjang.keranjang_jumlah_harga))
 
         // Buat data checkout
         const checkout = await Checkout.create({
