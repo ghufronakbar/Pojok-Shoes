@@ -4,12 +4,12 @@ const Pelanggan = require('../models/Pelanggan');
 const { Sequelize } = require('sequelize');
 const { SECRET_KEY } = require('../constants');
 const removeCloudinary = require('../helpers/cloudinary/removeCloudinary');
+const getCoordinates = require('../helpers/getCoordinates');
 
 const register = async (req, res) => {
   const { pelanggan_nama, pelanggan_alamat, pelanggan_nomor, pelanggan_password, pelanggan_email } = req.body;
 
   try {
-    // Check if phone number or email already exists
     const existingPelanggan = await Pelanggan.findOne({
       where: {
         [Sequelize.Op.or]: [
@@ -20,22 +20,28 @@ const register = async (req, res) => {
     });
 
     if (existingPelanggan) {
-      return res.status(400).json({ message: 'Nomor telepon atau email sudah terdaftar' });
+      return res.status(200).json({ message: 'Nomor telepon atau email sudah terdaftar', success: false });
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(pelanggan_password, 10);
+    const coor = await getCoordinates(pelanggan_alamat);
 
-    // Create new pelanggan
+    if (!coor) {
+      return res.status(200).json({ error: 'Alamat tidak valid', success: false });
+    }
+
+
     const newPelanggan = await Pelanggan.create({
       pelanggan_nama,
       pelanggan_alamat,
       pelanggan_nomor,
-      pelanggan_email,  // Store email
-      pelanggan_password: hashedPassword
+      pelanggan_email,
+      pelanggan_password: hashedPassword,
+      latitude: coor.latitude,
+      longitude: coor.longitude
     });
 
-    res.status(201).json({ message: 'Pelanggan berhasil terdaftar', pelanggan: newPelanggan });
+    res.status(200).json({ success: true, message: 'Pelanggan berhasil terdaftar', pelanggan: newPelanggan });
   } catch (error) {
     console.error('Error saat registrasi:', error);
     res.status(500).json({ error: 'Gagal mendaftarkan pelanggan', details: error.message });
@@ -110,18 +116,31 @@ const updateProfile = async (req, res) => {
       }
     });
 
-    console.log({ checkEmailPhonePelangganId: checkEmailPhone?.pelanggan_id, pelangganId });
-
     if (checkEmailPhone && checkEmailPhone.pelanggan_id !== pelangganId) {
-      return res.status(400).json({ error: 'Nomor telepon, email, atau username sudah terdaftar' });
+      return res.status(200).json({ error: 'Nomor telepon, email, atau username sudah terdaftar', success: false });
     }
 
+    let latitude = pelanggan.latitude;
+    let longitude = pelanggan.longitude;
+
+    if (pelanggan_alamat !== pelanggan.pelanggan_alamat) {
+      const coor = await getCoordinates(pelanggan_alamat);
+
+      if (!coor) {
+        return res.status(200).json({ error: 'Alamat tidak valid', success: false });
+      }
+
+      latitude = coor.latitude;
+      longitude = coor.longitude;
+    }
 
     const updatedPelanggan = {
       pelanggan_nama: pelanggan_nama || pelanggan.pelanggan_nama,
       pelanggan_alamat: pelanggan_alamat || pelanggan.pelanggan_alamat,
       pelanggan_nomor: pelanggan_nomor || pelanggan.pelanggan_nomor,
       pelanggan_email: pelanggan_email || pelanggan.pelanggan_email,
+      latitude,
+      longitude
     };
 
 
@@ -129,7 +148,7 @@ const updateProfile = async (req, res) => {
 
     const pelangganUpdated = await Pelanggan.findByPk(pelangganId);
 
-    res.json({ message: 'Profile updated successfully', ...pelangganUpdated.dataValues });
+    res.json({ success: true, message: 'Profile updated successfully', ...pelangganUpdated.dataValues });
   } catch (error) {
     console.error('Failed to update profile:', error);
     res.status(500).json({ error: 'Failed to update profile', details: error.message });
@@ -174,13 +193,13 @@ const updatePassword = async (req, res) => {
 
 
 const getProfile = async (req, res) => {
-  try {    
+  try {
     const pelanggan = req.user;
 
     if (!pelanggan) {
       return res.status(404).json({ error: 'Pelanggan not found' });
     }
-    
+
     res.json({
       pelanggan_id: pelanggan.pelanggan_id,
       pelanggan_nama: pelanggan.pelanggan_nama,

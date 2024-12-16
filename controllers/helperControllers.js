@@ -1,13 +1,33 @@
+const getCoordinates = require("../helpers/getCoordinates");
 const getDistance = require("../helpers/getDistance");
-
+const Pelanggan = require("../models/Pelanggan");
 const SHIPPING_COST = 4000
 
 exports.calcShippingCost = async (req, res) => {
     try {
-        const { latitude, longitude } = req.query;
+        const pelanggan_id = req?.user?.pelanggan_id;
 
-        if (isNaN(Number(latitude)) || isNaN(Number(longitude))) {
-            return res.status(400).json({ error: 'latitude and longitude must be numbers' });
+        const user = await Pelanggan.findOne({
+            where: {
+                pelanggan_id
+            }
+        });
+
+        if (!user) {
+            return res.status(404).json({ error: 'Pelanggan not found' });
+        }
+
+        let latitude = user.latitude;
+        let longitude = user.longitude;
+
+        if (user.latitude === null || user.longitude === null || user.latitude == 0 || user.longitude == 0) {
+            const coor = await getCoordinates(user.pelanggan_alamat);
+            if (!coor) {
+                return res.status(200).json({ error: 'Alamat tidak valid', success: false });
+            } else {
+                latitude = coor.latitude;
+                longitude = coor.longitude;
+            }
         }
 
         const distance = getDistance(Number(latitude), Number(longitude));

@@ -29,8 +29,16 @@ const Pelanggan = sequelize.define('Pelanggan', {
     unique: true,
   },
   pelanggan_picture: {
-    type: DataTypes.TEXT,    
+    type: DataTypes.TEXT,
     allowNull: true
+  },
+  latitude: {
+    type: DataTypes.FLOAT,
+    allowNull: true
+  },
+  longitude: {
+    type: DataTypes.FLOAT,
+    allowNull: true,
   }
 }, {
   tableName: 'pelanggan',

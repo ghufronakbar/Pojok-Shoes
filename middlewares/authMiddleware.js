@@ -4,27 +4,27 @@ const { SECRET_KEY } = require('../constants');
 
 const authMiddleware = async (req, res, next) => {
   // Log header Authorization untuk debugging
-  console.log('Authorization Header:', req.header('Authorization'));
+  // console.log('Authorization Header:', req.header('Authorization'));
 
   const token = req.header('Authorization')?.replace('Bearer ', ''); // Mengambil token
-  console.log('Extracted Token:', token); // Log token yang diekstrak
+  // console.log('Extracted Token:', token); // Log token yang diekstrak
 
   if (!token) {
-    console.log('No token provided'); // Log tambahan
+    // console.log('No token provided'); // Log tambahan
     return res.status(401).json({ error: 'No token provided' }); // Token tidak ada
   }
 
   try {
     // Verify token
     const decoded = jwt.verify(token, SECRET_KEY);
-    console.log('Decoded Token:', decoded); // Log token yang sudah didecode
+    // console.log('Decoded Token:', decoded); // Log token yang sudah didecode
 
     // Cari pelanggan berdasarkan pelanggan_id
     const pelanggan = await Pelanggan.findByPk(decoded.id);
-    console.log('Found Pelanggan:', pelanggan); // Log pelanggan yang ditemukan
+    // console.log('Found Pelanggan:', pelanggan); // Log pelanggan yang ditemukan
 
     if (!pelanggan) {
-      console.log('Pelanggan not found for ID:', decoded.id); // Log tambahan
+      // console.log('Pelanggan not found for ID:', decoded.id); // Log tambahan
       return res.status(404).json({ error: 'Pelanggan not found' }); // Jika pelanggan tidak ditemukan
     }
 
